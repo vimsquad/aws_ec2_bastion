@@ -1,3 +1,4 @@
 secrets
 .terraform*
 terraform.*
+*.auto.tfvars
