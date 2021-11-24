@@ -16,4 +16,4 @@ Example SSH Command
 
 ```
 ssh -l ec2-user -i secrets/eg-prod-magnetic-python.pem hostname
-``
+```
