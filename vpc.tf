@@ -2,7 +2,6 @@ data "aws_availability_zones" "available" { state = "available" }
 
 resource "random_pet" "vpc" {}
 
-
 locals {
   cidr_block      = var.cidr_block
   cidr_subnets    = cidrsubnets(local.cidr_block, 8, 8)
