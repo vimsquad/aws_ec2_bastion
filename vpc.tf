@@ -17,6 +17,8 @@ module "vpc" {
   azs             = slice(data.aws_availability_zones.available.names, 0, length(local.cidr_subnets))
   private_subnets = local.private_subnets
   public_subnets  = [local.cidr_subnets[1]]
+  default_vpc_enable_dns_hostnames = true
+  enable_dns_hostnames = true
 
   enable_vpn_gateway     = false
   enable_nat_gateway     = true

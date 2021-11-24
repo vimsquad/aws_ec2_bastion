@@ -1,5 +1,5 @@
 locals {
-  ec2_random_names = ["ec2", "key_pair"]
+  ec2_random_names = ["ec2", "key_pair", "sg"]
 }
 
 resource "random_pet" "ec2" { for_each = toset(local.ec2_random_names) }
@@ -17,13 +17,37 @@ module "key_pair" {
   public_key_extension  = ".pub"
 }
 
-data "aws_ami_ids" "ubuntu" {
+data "aws_ami_ids" "linux" {
   owners = ["amazon"]
+  filter {
+    name   = "image-type"
+    values = ["machine"]
+  }
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/ubuntu-*-*-amd64-server-*"]
+    values = ["amzn2-ami*"]
   }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+}
+
+#output "amis" { value = data.aws_ami_ids.linux.* }
+
+
+module "ec2_sg" {
+  source = "terraform-aws-modules/security-group/aws//modules/ssh"
+
+  name                        = format("ssh-%s", random_pet.ec2["sg"].id)
+  description = "Security group for SSH"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+
 }
 
 module "ec2_instance" {
@@ -31,14 +55,13 @@ module "ec2_instance" {
   version = "~> 3.0"
 
   name                        = random_pet.ec2["ec2"].id
-  ami                         = data.aws_ami_ids.ubuntu.ids[0]
+  ami                         = data.aws_ami_ids.linux.ids[0]
   instance_type               = "t2.micro"
   key_name                    = module.key_pair.key_name
   monitoring                  = true
-  vpc_security_group_ids      = []
-  subnet_id                   = module.vpc.private_subnets[0]
+  vpc_security_group_ids      = [module.ec2_sg.security_group_id]
+  subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
-
   tags = var.tags
 }
 
