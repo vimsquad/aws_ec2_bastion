@@ -4,10 +4,14 @@ Example auto.tfvars file
 cat dev.auto.tfvars
 tags = {
   env : "dev"
-  project : "crypt"
+  project : "training"
 }
 
 cidr_block = "10.0.0.0/16"
+
+ec2_size = "m5a.large"
+
+ami = "ubuntu"
 
 ```
 
@@ -15,5 +19,5 @@ cidr_block = "10.0.0.0/16"
 Example SSH Command
 
 ```
-ssh -l ec2-user -i secrets/eg-prod-magnetic-python.pem hostname
+ssh -l ubuntu -i secrets/*.pem hostname
 ```
