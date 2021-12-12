@@ -1,5 +1,6 @@
 locals {
-  ec2_random_names = ["ec2", "key_pair", "sg"]
+  ec2_instances = ["node1", "node2"]
+  ec2_random_names = concat(["key_pair", "sg"], local.ec2_instances)
 }
 
 resource "random_pet" "ec2" { for_each = toset(local.ec2_random_names) }
@@ -42,7 +43,7 @@ data "aws_ami_ids" "linux" {
 module "ec2_sg" {
   source = "terraform-aws-modules/security-group/aws//modules/ssh"
 
-  name                        = format("ssh-%s", random_pet.ec2["sg"].id)
+  name        = format("ssh-%s", random_pet.ec2["sg"].id)
   description = "Security group for SSH"
   vpc_id      = module.vpc.vpc_id
 
@@ -50,19 +51,22 @@ module "ec2_sg" {
 
 }
 
+variable "ec2_size" { type = string }
+
 module "ec2_instance" {
+  for_each = toset(local.ec2_instances)
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 3.0"
 
-  name                        = random_pet.ec2["ec2"].id
+  name                        = random_pet.ec2[each.key].id
   ami                         = data.aws_ami_ids.linux.ids[0]
-  instance_type               = "t2.micro"
+  instance_type               = var.ec2_size
   key_name                    = module.key_pair.key_name
   monitoring                  = true
   vpc_security_group_ids      = [module.ec2_sg.security_group_id]
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
-  tags = var.tags
+  tags                        = var.tags
 }
 
 output "ec2" { value = module.ec2_instance.* }
