@@ -18,26 +18,6 @@ module "key_pair" {
   public_key_extension  = ".pub"
 }
 
-data "aws_ami_ids" "linux" {
-  owners = ["amazon"]
-  filter {
-    name   = "image-type"
-    values = ["machine"]
-  }
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-}
-
-#output "amis" { value = data.aws_ami_ids.linux.* }
 
 
 module "ec2_sg" {
@@ -52,6 +32,7 @@ module "ec2_sg" {
 }
 
 variable "ec2_size" { type = string }
+variable "ami" { type = string }
 
 module "ec2_instance" {
   for_each = toset(local.ec2_instances)
@@ -59,7 +40,7 @@ module "ec2_instance" {
   version = "~> 3.0"
 
   name                        = random_pet.ec2[each.key].id
-  ami                         = data.aws_ami_ids.linux.ids[0]
+  ami                         = lookup(local.images, lower(var.ami), "amazon")
   instance_type               = var.ec2_size
   key_name                    = module.key_pair.key_name
   monitoring                  = true
@@ -69,5 +50,5 @@ module "ec2_instance" {
   tags                        = var.tags
 }
 
-output "ec2" { value = module.ec2_instance.* }
+output "ec2" { value = { for x, y in module.ec2_instance: x => y.public_dns } }
 
