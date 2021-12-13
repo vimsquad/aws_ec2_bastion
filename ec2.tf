@@ -82,7 +82,8 @@ module "ec2_instance" {
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   tags                        = var.tags
-  user_data            = var.user_data_file == "" ? null : file(var.user_data_file)
+  #user_data            = "mkdir -p /opt/test"
+  user_data = var.user_data_file == "" ? null : file(var.user_data_file)
 }
 
 output "ec2" { value = { for x, y in module.ec2_instance : x => y.public_dns } }

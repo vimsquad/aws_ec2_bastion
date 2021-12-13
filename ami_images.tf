@@ -26,7 +26,7 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["*impish*"]
+    values = ["*bionic*"]
   }
 
   filter {
