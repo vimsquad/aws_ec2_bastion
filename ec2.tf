@@ -30,7 +30,7 @@ module "kube_training_sg" {
     {
       from_port   = 0
       to_port     = 0
-      protocol    = "tcp"
+      protocol    = "all"
       description = "all"
       cidr_blocks = "0.0.0.0/0"
     }
@@ -41,7 +41,7 @@ module "kube_training_sg" {
     {
       from_port   = 0
       to_port     = 0
-      protocol    = "tcp"
+      protocol    = "all"
       description = "all"
       cidr_blocks = "0.0.0.0/0"
     }
