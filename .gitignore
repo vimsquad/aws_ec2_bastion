@@ -4,3 +4,4 @@ terraform.*
 *.auto.tfvars
 *_accessKeys.csv
 lab.sh
+lab_notes.txt

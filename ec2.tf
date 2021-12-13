@@ -88,4 +88,6 @@ module "ec2_instance" {
 
 output "ec2" { value = { for x, y in module.ec2_instance : x => y.public_dns } }
 output "ssh_command" { value = { for x, y in module.ec2_instance : x => format("ssh -l ubuntu -i secrets/*.pem $(terraform output -json |jq -r .ec2.value.%s)", x) } }
+output "stop" { value = { for x, y in module.ec2_instance : format("stop-%s", x) => format("aws ec2 stop-instances --instance-ids %s)", y.id) } }
+output "start" { value = { for x, y in module.ec2_instance : format("start-%s", x) => format("aws ec2 start-instances --instance-ids %s)", y.id) } }
 
