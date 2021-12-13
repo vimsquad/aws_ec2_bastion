@@ -1,5 +1,5 @@
 locals {
-  ec2_instances = ["node1", "node2"]
+  ec2_instances    = ["node1", "node2"]
   ec2_random_names = concat(["key_pair", "sg"], local.ec2_instances)
 }
 
@@ -16,6 +16,36 @@ module "key_pair" {
   generate_ssh_key      = "true"
   private_key_extension = ".pem"
   public_key_extension  = ".pub"
+}
+
+module "kube_training_sg" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name        = "kube_all"
+  description = "Security group for user-service with custom ports open within VPC, and PostgreSQL publicly open"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "tcp"
+      description = "all"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_cidr_blocks = ["0.0.0.0/0"]
+  egress_with_cidr_blocks = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "tcp"
+      description = "all"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
 }
 
 
@@ -36,19 +66,19 @@ variable "ami" { type = string }
 
 module "ec2_instance" {
   for_each = toset(local.ec2_instances)
-  source  = "terraform-aws-modules/ec2-instance/aws"
-  version = "~> 3.0"
+  source   = "terraform-aws-modules/ec2-instance/aws"
+  version  = "~> 3.0"
 
   name                        = random_pet.ec2[each.key].id
   ami                         = lookup(local.images, lower(var.ami), "amazon")
   instance_type               = var.ec2_size
   key_name                    = module.key_pair.key_name
   monitoring                  = true
-  vpc_security_group_ids      = [module.ec2_sg.security_group_id]
+  vpc_security_group_ids      = [module.kube_training_sg.security_group_id, module.ec2_sg.security_group_id]
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   tags                        = var.tags
 }
 
-output "ec2" { value = { for x, y in module.ec2_instance: x => y.public_dns } }
+output "ec2" { value = { for x, y in module.ec2_instance : x => y.public_dns } }
 
