@@ -63,6 +63,10 @@ module "ec2_sg" {
 
 variable "ec2_size" { type = string }
 variable "ami" { type = string }
+variable "user_data_file" {
+  type    = string
+  default = ""
+}
 
 module "ec2_instance" {
   for_each = toset(local.ec2_instances)
@@ -78,7 +82,9 @@ module "ec2_instance" {
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
   tags                        = var.tags
+  user_data            = var.user_data_file == "" ? null : file(var.user_data_file)
 }
 
 output "ec2" { value = { for x, y in module.ec2_instance : x => y.public_dns } }
+output "ssh_command" { value = { for x, y in module.ec2_instance : x => format("ssh -l ubuntu -i secrets/*.pem $(terraform output -json |jq -r .ec2.value.%s)", x) } }
 

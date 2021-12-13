@@ -3,3 +3,4 @@ secrets
 terraform.*
 *.auto.tfvars
 *_accessKeys.csv
+lab.sh
